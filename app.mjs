@@ -20,4 +20,23 @@ app.get('/', (req, res) => {
   res.render('home', {problems})
 })
 
+app.get('/problems/:id/:name', (req, res) => {
+  const problemId = req.params.id
+
+  let problem = null
+  for (let i = 0; i < problems.length; i++) {
+    if (problems[i].data.id === problemId) {
+      problem = problems[i]
+      break
+    }
+  }
+  
+  if (!problem) {
+    res.status(404).send('Problem not found')
+    return
+  }
+
+  res.render('problem', {problem})
+})
+
 app.listen(3000, () => { console.log('Server is running on port 3000') })
