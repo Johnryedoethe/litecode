@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <head>
   <title><%= problem.data.name %></title>
+
+  <!-- Load the library via CDN -->
+  <script type="module">
+    import HighlightedCode from 'https://unpkg.com/highlighted-code';
+    HighlightedCode.useTheme('github');
+  </script>
 </head>
 <body>
   <div>
@@ -10,7 +16,6 @@
     <p><%- desc %></p>
   </div>
 
-  <div></div>
-    
+  <textarea is="highlighted-code" language="javascript" tab-size="2" rows="30" cols="120"><%= solutionTemplate %></textarea>
 </body>
 </html>

@@ -37,7 +37,12 @@ app.get('/problems/:id/:name', (req, res) => {
     return
   }
 
-  res.render('problem', {problem, desc: marked.parse(problem.content)})
+  const solutionTemplate = `function solution(input) {
+  return ...
+}
+`
+
+  res.render('problem', {problem, desc: marked.parse(problem.content), solutionTemplate})
 })
 
 app.listen(3000, () => { console.log('Server is running on port 3000') })
