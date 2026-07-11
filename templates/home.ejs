@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <head>
-  <title>home page</title>
+  <title>problemset</title>
 </head>
 <body>
-  <h2>welcome to code</h2>
+  <div>
+    <h2>problemSet</h2>
 
-  <p>see problemset, <a href="/problemset">problemset</a></p>
+    <% problems.forEach((problem) => { %>
+      <div>
+        <a href="/problems/<%= problem.data.id %>/<%= problem.data.name %>">
+          <%= problem.data.name %>
+        </a>
+      </div>
+    <% }) %>
+  </div>
+    
 </body>
 
 </html>

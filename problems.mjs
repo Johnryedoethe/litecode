@@ -5,8 +5,6 @@ const PROBLEMS_FOLDER = './problems'
 
 // Loads .md files in `problems` folder.
 // Returns an array of problems.
-// Each problem is in the form:
-// `{id: <string>, name: <string>, level: <string>, description: <Markdown string>}`
 export async function loadProblems() {
   const files = await readdir(PROBLEMS_FOLDER)
 
