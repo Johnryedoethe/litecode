@@ -1,5 +1,6 @@
 import bodyParser from 'body-parser'
 import express from 'express'
+import { marked } from 'marked'
 import path from 'path'
 
 import { loadProblems } from './problems.mjs'
@@ -36,7 +37,7 @@ app.get('/problems/:id/:name', (req, res) => {
     return
   }
 
-  res.render('problem', {problem})
+  res.render('problem', {problem, desc: marked.parse(problem.content)})
 })
 
 app.listen(3000, () => { console.log('Server is running on port 3000') })
