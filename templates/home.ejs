@@ -8,9 +8,8 @@
 
     <% problems.forEach((problem) => { %>
       <div>
-        <a href="/problems/<%= problem.data.id %>/<%= problem.data.name %>">
-          <%= problem.data.name %>
-        </a>
+        <a href="/problems/<%= problem.data.id %>/<%= problem.data.name %>"><%= problem.data.name %></a>
+        <p><%= problem.data.level%></p>
       </div>
     <% }) %>
   </div>

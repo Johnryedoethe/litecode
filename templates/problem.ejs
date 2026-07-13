@@ -6,16 +6,88 @@
   <script type="module">
     import HighlightedCode from 'https://unpkg.com/highlighted-code';
     HighlightedCode.useTheme('github');
+
+    // initialise web worker
+    // loop through test cases
+    // see result
+    // for later, add completed 
+
+    function runUserCode(userCodeString) {
+      const workerDetails = `self.onmessage = (testcases) => {
+        // disable stuff
+        self.fetch = undefined;
+        self.XMLHttpRequest = undefined;
+        self.importScripts = undefined;
+        self.WebSocket = undefined;
+        self.indexedDB = undefined;
+        self.localStorage = undefined;
+
+        try {
+          const userFunction = new Function('input', \'${userCodeString}\')
+          
+          for (let i = 0; i < testcases.length; i++) {
+            const input = testcases[i].data.input
+            const stdout = userFunction(input)
+
+            if (!stdout === testcases[i].data.output) {
+              self.postMessage({status: "failed", input: input, output: stdout, testsComplete: i + 1})
+              return
+            }
+          }
+
+          self.postMessage({status: "test cases complete", testsCompleted: testCases.length})
+        } catch (error) {
+          self.postMessage({status: "error running", errorMessage: error.message})
+        }
+      }
+      `
+        const blob = new Blob([workerDetails], { type: 'application/javascript' })
+        const webworker = new Worker(URL.createObjectURL(blob))
+
+
+      webworker.onmessage = function(returnVal) {
+        const returnData = returnVal.data
+        
+        validateResult(returnData)
+      }
+
+      // give webworkjer testcases
+      const testcases = "<%- problem.data.testcases %>"
+      webworker.postMessage(testcases)
+
+      function validateResult(workerData) {
+        const { status, input, output, errorMessage, testsCompleted } = workerData.data
+
+        if (status === "error running") {
+          testResult.value = errorMessage
+        } 
+
+        if (status === "failed") {
+          testResult.value = "${testsCompleted}/<%= problem.data.testcases.length + 1 %> input: ${input}, output: ${output}, expected ${problem.data.testcases[testsCompleted].output}"
+        }
+
+        if (status === "test cases complete") {
+          testResult.value = "${testsCompleted}/<%= problem.data.testcases.length + 1 %>"
+
+          // boilerplate for user db add this problem id to completed 
+        }
+
+      }
+
+    }
+
   </script>
 </head>
 <body>
   <div>
     <h2><%= problem.data.id %>. <%= problem.data.name %></h2>
-    <p><%= problem.data.level %></p>
+    <p>difficulty: <%= problem.data.level %></p>
 
     <p><%- desc %></p>
   </div>
 
-  <textarea is="highlighted-code" language="javascript" tab-size="2" rows="30" cols="120"><%= solutionTemplate %></textarea>
+  <textarea name="userCode" is="highlighted-code" language="javascript" tab-size="2" rows="30" cols="120"><%= solutionTemplate %></textarea>
+  <button onclick="runUserCode(userCode.value)">run tests</button>
+  <p name="testResult">t</p>
 </body>
 </html>

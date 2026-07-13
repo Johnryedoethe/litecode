@@ -40,7 +40,7 @@ app.get('/problems/:id/:name', (req, res) => {
   const solutionTemplate = `function solution(input) {
   return ...
 }
-`
+  `
 
   res.render('problem', {problem, desc: marked.parse(problem.content), solutionTemplate})
 })
