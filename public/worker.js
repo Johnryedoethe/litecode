@@ -1,12 +1,13 @@
 self.onmessage = function(event) {
-    const userCode = event.data
-    
-    const funcBody = `const userFunc = ${userCode}; return userFunc();`
+    try {
+      const { input, userCode } = event.data
 
-    const userFunction = new Function('input', funcBody)
+      const funcBody = `const userFunc = ${userCode}; return userFunc(input);`
+      const userFunction = new Function('input', funcBody)
 
-    const result = userFunction()
-    
-    // Send the calculated result back to the main thread
-    self.postMessage(result);
+      const result = userFunction(input)
+      self.postMessage({result, success: true})
+    } catch (err) {
+      self.postMessage({result: err, success: false})
+    }
 }

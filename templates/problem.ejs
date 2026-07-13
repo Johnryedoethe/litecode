@@ -27,8 +27,7 @@
       };
 
       // 3. Trigger the worker by sending it some data
-      myWorker.postMessage(userCode);
-
+      myWorker.postMessage({input: 123, userCode});
     }
 
   </script>
