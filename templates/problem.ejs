@@ -6,73 +6,30 @@
   <script type="module">
     import HighlightedCode from 'https://unpkg.com/highlighted-code';
     HighlightedCode.useTheme('github');
+  </script>
 
+  <script>
     // initialise web worker
     // loop through test cases
     // see result
     // for later, add completed 
 
-    function runUserCode(userCodeString) {
-      const workerDetails = `self.onmessage = (testcases) => {
-        // disable stuff
-        self.fetch = undefined;
-        self.XMLHttpRequest = undefined;
-        self.importScripts = undefined;
-        self.WebSocket = undefined;
-        self.indexedDB = undefined;
-        self.localStorage = undefined;
+    function runUserCode() {
+      const userCodeString = document.getElementById("userCode").value
 
-        try {
-          const userFunction = new Function('input', \'${userCodeString}\')
-          
-          for (let i = 0; i < testcases.length; i++) {
-            const input = testcases[i].data.input
-            const stdout = userFunction(input)
+      // main.js
+// 1. Initialize the background worker thread
+      const myWorker = new Worker('/worker.js');
 
-            if (!stdout === testcases[i].data.output) {
-              self.postMessage({status: "failed", input: input, output: stdout, testsComplete: i + 1})
-              return
-            }
-          }
+      // 2. Define what to do when the worker sends back data
+      myWorker.onmessage = function(event) {
+          console.log('Received result from worker:', event.data);
+      };
 
-          self.postMessage({status: "test cases complete", testsCompleted: testCases.length})
-        } catch (error) {
-          self.postMessage({status: "error running", errorMessage: error.message})
-        }
-      }
-      `
-        const blob = new Blob([workerDetails], { type: 'application/javascript' })
-        const webworker = new Worker(URL.createObjectURL(blob))
-
-
-      webworker.onmessage = function(returnVal) {
-        const returnData = returnVal.data
-        
-        validateResult(returnData)
-      }
-
-      // give webworkjer testcases
-      const testcases = "<%- problem.data.testcases %>"
-      webworker.postMessage(testcases)
-
-      function validateResult(workerData) {
-        const { status, input, output, errorMessage, testsCompleted } = workerData.data
-
-        if (status === "error running") {
-          testResult.value = errorMessage
-        } 
-
-        if (status === "failed") {
-          testResult.value = "${testsCompleted}/<%= problem.data.testcases.length + 1 %> input: ${input}, output: ${output}, expected ${problem.data.testcases[testsCompleted].output}"
-        }
-
-        if (status === "test cases complete") {
-          testResult.value = "${testsCompleted}/<%= problem.data.testcases.length + 1 %>"
-
-          // boilerplate for user db add this problem id to completed 
-        }
-
-      }
+      // 3. Trigger the worker by sending it some data
+      const number = 42;
+      console.log('Sending number to worker:', number);
+      myWorker.postMessage(number);
 
     }
 
@@ -86,8 +43,8 @@
     <p><%- desc %></p>
   </div>
 
-  <textarea name="userCode" is="highlighted-code" language="javascript" tab-size="2" rows="30" cols="120"><%= solutionTemplate %></textarea>
-  <button onclick="runUserCode(userCode.value)">run tests</button>
+  <textarea id="userCode" is="highlighted-code" language="javascript" tab-size="2" rows="30" cols="120"><%= solutionTemplate %></textarea>
+  <button onclick="runUserCode()">run tests</button>
   <p name="testResult">t</p>
 </body>
 </html>
