@@ -1,8 +1,9 @@
 self.onmessage = function(event) {
-    const numberToSquare = event.data;
+    const userCode = event.data;
     
+    const userFunction = new Function('input', userCode)
     // Perform computation
-    const result = numberToSquare * numberToSquare;
+    const result = userFunction()
     
     // Send the calculated result back to the main thread
     self.postMessage(result);

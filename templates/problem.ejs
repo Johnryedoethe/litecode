@@ -15,7 +15,7 @@
     // for later, add completed 
 
     function runUserCode() {
-      const userCodeString = document.getElementById("userCode").value
+      const userCode = document.getElementById("userCode").value
 
       // main.js
 // 1. Initialize the background worker thread
@@ -27,9 +27,7 @@
       };
 
       // 3. Trigger the worker by sending it some data
-      const number = 42;
-      console.log('Sending number to worker:', number);
-      myWorker.postMessage(number);
+      myWorker.postMessage(userCode);
 
     }
 
