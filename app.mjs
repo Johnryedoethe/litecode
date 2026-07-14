@@ -41,7 +41,7 @@ app.get('/problems/:id/:name', (req, res) => {
   return ...
 }
   `
-
+  // res.json(problem.data.testcases)
   res.render('problem', {problem, desc: marked.parse(problem.content), solutionTemplate})
 })
 

@@ -1,13 +1,22 @@
 self.onmessage = function(event) {
-    try {
-      const { input, userCode } = event.data
+  try {
+    const { testcases, userFuncBody } = event.data
 
-      const funcBody = `const userFunc = ${userCode}; return userFunc(input);`
-      const userFunction = new Function('input', funcBody)
+    const funcBody = `const userFunc = ${userFuncBody}; return userFunc(input);`
+    const userFunction = new Function('input', funcBody)
 
-      const result = userFunction(input)
-      self.postMessage({result, success: true})
-    } catch (err) {
-      self.postMessage({result: err, success: false})
+    for (let i = 0; i < testcases.length; i++) {
+      const caseInput = testcases[i].input
+      const stdout = userFunction(caseInput)
+
+      if (stdout !== testcases[i].output) {
+        self.postMessage({result: {Input: caseInput, stdout, expected: testcases[i].output, casesPassed: `${i + 1}/${testcases.length}`}, status: "Failed"})
+        return
+      }
     }
+
+    self.postMessage({result: "${testcases.length}/${testcases.length}", status: "Complete"})
+  } catch (err) {
+    self.postMessage({err, status: "Error found"})
+  }
 }

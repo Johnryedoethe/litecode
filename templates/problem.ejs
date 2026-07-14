@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-  <title><%= problem.data.name %></title>
+  <title><%= problem.data.slugname %></title>
 
   <!-- Load the library via CDN -->
   <script type="module">
@@ -12,22 +12,44 @@
     // initialise web worker
     // loop through test cases
     // see result
-    // for later, add completed 
+    // for later, add completed test cases 
 
     function runUserCode() {
-      const userCode = document.getElementById("userCode").value
+      const userFuncBody = document.getElementById("userCode").value
 
       // main.js
-// 1. Initialize the background worker thread
-      const myWorker = new Worker('/worker.js');
+      // 1. Initialize the background worker thread
+      const webWorker = new Worker('/worker.js');
 
       // 2. Define what to do when the worker sends back data
-      myWorker.onmessage = function(event) {
+      webWorker.onmessage = function(event) {
           console.log('Received result from worker:', event.data);
+
+          validateResult(event)
+          webWorker.terminate()
       };
 
       // 3. Trigger the worker by sending it some data
-      myWorker.postMessage({input: 123, userCode});
+      const testcases = <%- JSON.stringify(problem.data.testcases) %>
+      webWorker.postMessage({testcases, userFuncBody});
+
+      function validateResult(workerData) {
+        const { status, result, err } = workerData.data
+
+        let testRes = document.getElementById("testResult")
+        
+        if (status === "Error found") {
+          testRes.textContent = `result: ${status}, ${err}`
+        }
+
+        if (status === "Failed") {
+          testRes.textContent = `${result.casesPassed} cases passed, Input: ${result.input}, result: ${result.stdout}, expected: ${result.expected}`
+        }
+
+        if (status === "Complete") {
+          testRes.textContent = `${result}`
+        }
+      }
     }
 
   </script>
@@ -42,6 +64,6 @@
 
   <textarea id="userCode" is="highlighted-code" language="javascript" tab-size="2" rows="30" cols="120"><%= solutionTemplate %></textarea>
   <button onclick="runUserCode()">run tests</button>
-  <p name="testResult">t</p>
+  <div><p id="testResult"></p></div>
 </body>
 </html>
