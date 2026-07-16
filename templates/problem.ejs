@@ -9,31 +9,27 @@
   </script>
 
   <script>
-    // initialise web worker
-    // loop through test cases
-    // see result
-    // for later, add completed test cases 
-
     function runUserCode() {
       const userFuncBody = document.getElementById("userCode").value
 
-      // main.js
-      // 1. Initialize the background worker thread
+      // 1. Initialize the worker thread
       const webWorker = new Worker('/worker.js');
 
       // 2. Define what to do when the worker sends back data
       webWorker.onmessage = function(event) {
           console.log('Received result from worker:', event.data);
 
-          validateResult(event)
+          handleResult(event)
           webWorker.terminate()
       };
 
-      // 3. Trigger the worker by sending it some data
+      // 3. run worker by sending it the test cases
+      // when stringifying the red is an ejs and html script issue that doesn't cause impact anything
       const testcases = <%- JSON.stringify(problem.data.testcases) %>
       webWorker.postMessage({testcases, userFuncBody});
 
-      function validateResult(workerData) {
+
+      function handleResult(workerData) {
         const { status, result, err } = workerData.data
 
         let testRes = document.getElementById("testResult")

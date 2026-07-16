@@ -10,7 +10,7 @@ self.onmessage = function(event) {
       const stdout = userFunction(caseInput)
 
       if (stdout !== testcases[i].output) {
-        self.postMessage({result: {Input: caseInput, stdout, expected: testcases[i].output, casesPassed: `${i + 1}/${testcases.length}`}, status: "Failed"})
+        self.postMessage({result: {Input: caseInput, stdout, expected: testcases[i].output, casesPassed: `${i}/${testcases.length}`}, status: "Failed"})
         return
       }
     }
