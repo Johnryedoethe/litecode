@@ -4,8 +4,13 @@ import { marked } from 'marked'
 import path from 'path'
 
 import { loadProblems } from './problems.mjs'
+import { SolutionsDb } from './model/solutions.mjs'
 
 const problems = await loadProblems()
+const solutionsDb = new SolutionsDb()
+
+solutionsDb.createSolutionsDb()
+
 
 const app = express()
 
