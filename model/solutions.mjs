@@ -20,6 +20,8 @@ export async function createSolutionsDb() {
       } 
     }
   )
+
+  return solutionDb
 } 
 
 export async function getFromSolutionsDbIfExists(solutionDb, reqHash) {
