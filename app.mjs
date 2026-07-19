@@ -4,15 +4,14 @@ import { marked } from 'marked'
 import path from 'path'
 
 import { loadProblems } from './problems.mjs'
-import { SolutionsDb } from './model/solutions.mjs'
+import { createSolutionsDb } from './model/solutions.mjs'
 
 const problems = await loadProblems()
-const solutionsDb = new SolutionsDb()
-
-solutionsDb.createSolutionsDb()
+const solutionsDb = createSolutionsDb()
 
 
 const app = express()
+
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
