@@ -9,10 +9,10 @@ export function initialiseUsersDb() {
     }
   })
 
-  solutionDb.run(`CREATE TABLE IF NOT EXISTS solutions (
+  usersDb.run(`CREATE TABLE IF NOT EXISTS solutions (
       userId TEXT NOT NULL,
-      username TEXT NOT NULL,
       password TEXT NOT NULL,
+      username TEXT NOT NULL,
       email TEXT
     );`, (err) => {
       if (err) {
