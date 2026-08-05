@@ -77,8 +77,9 @@
 
       async function handlePostReq(body) {
         // get user id
+        const userId = "1"
         const { status } = body
-        const infoBody = {status: status, userSolution: userFuncBody, solutionId: <%= problem.data.id %>, userId: "1"}
+        const infoBody = {status: status, userSolution: userFuncBody, solutionId: <%= problem.data.id %>, userId: userId}
         
         try {
           const writeSolutionRes = await fetch('/createOrUpdateSolution', {
@@ -89,10 +90,10 @@
 
           const res = await writeSolutionRes.json()
           
-          console.log(res)
-          if (!res.ok) {
+          if (!writeSolutionRes.ok) {
             throw new Error(res.message)
           }
+
         } catch(err) {
           console.log(err.message)
         }
@@ -103,7 +104,7 @@
 </head>
 <body>
   <div>
-    <% if (completed !== false) { %>
+    <% if (completed) { %>
       <p>completed<p></p> 
     <% } %>
     <h2><%= problem.data.id %>. <%= problem.data.name %></h2>
