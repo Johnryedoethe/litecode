@@ -1,14 +1,31 @@
 import bodyParser from 'body-parser'
 import express from 'express'
 import { marked } from 'marked'
+import sqlite3Package from 'sqlite3';
 
 import { loadProblems } from './problems.mjs'
-import { createSolutionsDb, 
-        getFromSolutionsDbIfExists, 
-        createORUpdateSolutionDb } from './model/solutions.mjs'
+import { createSolutionsTable, getFromSolutionsIfExists, createOrUpdateSolutions } from './model/solutions.mjs'
+import { createUsers, validatePassword } from './model/users.mjs'
+
+
+const sqlite3 = sqlite3Package.verbose()
 
 const problems = await loadProblems()
-const solutionsDb = await createSolutionsDb()
+
+export const db = new sqlite3.Database('./main.db', (err) => {
+    if (err) {
+      throw new Error("error instantiating solutionDb")
+    } else {
+      console.log("db instancialised")
+    }
+  })
+
+try {
+  await createUsers()
+  await createSolutionsTable()
+} catch (err) {
+  console.error(err)
+}
 
 
 const app = express()
@@ -17,7 +34,7 @@ const app = express()
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
 
-app.set('views', './templates')
+app.set('views', './view')
 app.set('view engine', 'ejs')
 app.use(express.static('public'))
 
@@ -28,7 +45,7 @@ app.get('/', (req, res) => {
 
 app.get('/problems/:id/:name', async (req, res) => {
   // get userId for querying db 
-  const userId = "2"
+  const userId = "1"
   const problemId = req.params.id
 
   let problem = null
@@ -45,16 +62,16 @@ app.get('/problems/:id/:name', async (req, res) => {
   }
 
   try {
-    const getUserData = await getFromSolutionsDbIfExists(solutionsDb, {solutionId: problemId, userId})
+    const getUserData = await getFromSolutionsIfExists({solutionId: problemId, userId})
 
     // null is default value for entry not found
     if (getUserData !== null) {
       const { userSolution, completed } = getUserData
-      solutionTemplate = userSolution
+      const solutionTemplate = userSolution
       return res.render('problem', {problem, desc: marked.parse(problem.content), solutionTemplate, completed})
     }
 
-    let solutionTemplate = `function solution(input) {
+    const solutionTemplate = `function solution(input) {
     return ...
 }`
 
@@ -71,7 +88,7 @@ app.post('/createOrUpdateSolution', async (req, res) => {
   if (status !== "Completed") {
     try {
       const writeInfo = {completed: false, userSolution, userId, solutionId}
-      const writeToSolutionDb = await createORUpdateSolutionDb(solutionsDb, writeInfo)
+      const writeToSolutionDb = await createOrUpdateSolutions(writeInfo)
       return res.status(200).json({message: "no issues running"})
     } catch (err) {
       return res.status(500).json({message: "internal server error handling data, try again later"})
@@ -82,7 +99,7 @@ app.post('/createOrUpdateSolution', async (req, res) => {
   if (status === "Completed") {
     try {
       const writeInfo = {completed: true, userSolution, userId, solutionId}
-      const writeToSolutionDb = await createORUpdateSolutionDb(solutionsDb, writeInfo)
+      const writeToSolutionDb = await createOrUpdateSolutions(writeInfo)
       return res.status(200).json({message: "no issues running"})
     } catch (err) {
       return res.status(500).json({message: "internal server error handling data, try again later"})
