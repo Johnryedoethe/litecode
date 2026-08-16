@@ -1,11 +1,13 @@
 import bodyParser from 'body-parser'
 import express from 'express'
 import { marked } from 'marked'
+import cookieParser from 'cookie-parser'
 import sqlite3Package from 'sqlite3';
 
 import { loadProblems } from './problems.mjs'
 import { createSolutionsTable, getFromSolutionsIfExists, createOrUpdateSolutions } from './model/solutions.mjs'
-import { createUsers, validatePassword } from './model/users.mjs'
+import { createUsersTable, validatePassword } from './model/users.mjs'
+import { createSessionsTable, createNewSession, getUserIdIfLoggedIn } from './model/sessions.mjs'
 
 
 const sqlite3 = sqlite3Package.verbose()
@@ -21,8 +23,9 @@ export const db = new sqlite3.Database('./main.db', (err) => {
   })
 
 try {
-  await createUsers()
+  await createUsersTable()
   await createSolutionsTable()
+  await createSessionsTable()
 } catch (err) {
   console.error(err)
 }
@@ -44,8 +47,6 @@ app.get('/', (req, res) => {
 })
 
 app.get('/problems/:id/:name', async (req, res) => {
-  // get userId for querying db 
-  const userId = "1"
   const problemId = req.params.id
 
   let problem = null
@@ -61,12 +62,25 @@ app.get('/problems/:id/:name', async (req, res) => {
     return
   }
 
+  // get sessionId from cookie
+  const sessionId = ""
+
   try {
-    const getUserData = await getFromSolutionsIfExists({solutionId: problemId, userId})
+    const userId = await getUserIdIfLoggedIn(sessionId)
+
+    if (!userId) {
+      const solutionTemplate = `function solution(input) {
+      return ...
+  }`
+
+      return res.render('problem', {problem, desc: marked.parse(problem.content), solutionTemplate, completed: false})
+    }
+
+    const getUserSolutionData = await getFromSolutionsIfExists({solutionId: problemId, userId})
 
     // null is default value for entry not found
-    if (getUserData !== null) {
-      const { userSolution, completed } = getUserData
+    if (getUserSolutionData !== null) {
+      const { userSolution, completed } = getUserSolutionData
       const solutionTemplate = userSolution
       return res.render('problem', {problem, desc: marked.parse(problem.content), solutionTemplate, completed})
     }
@@ -83,7 +97,12 @@ app.get('/problems/:id/:name', async (req, res) => {
 })
 
 app.post('/createOrUpdateSolution', async (req, res) => {
-  const { status, userSolution, userId, solutionId } = req.body
+  const { status, userSolution, solutionId } = req.body
+  // validate user session
+  if (!req.cookie) {
+    return res.status(200).json({message: "user not logged in"})
+  }
+  const userId = "1"
 
   if (status !== "Completed") {
     try {
@@ -105,7 +124,14 @@ app.post('/createOrUpdateSolution', async (req, res) => {
       return res.status(500).json({message: "internal server error handling data, try again later"})
     }
   }
-  
+})
+
+app.get('/userRegistration', (req, res) => {
+  res.render('userRegister')
+})
+
+app.post('/registerAcc', (req, res) => {
+
 })
 
 app.listen(3000, () => { console.log('Server is running on port 3000') })

@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <title>login</title>
+
+    <script>
+      async function handleRegister() {
+        const username = document.getElementById("user").value
+        const password = document.getElementById("password").value
+        const email = document.getElementById("email").value
+        
+        let msgInfo = document.getElementById("returnInfo")
+
+        if (!username || !password) {
+          msgInfo.textContent = "invalid username or password"
+        }
+
+        try {
+          const register = await fetch('/registerAcc', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: {username, password, email}
+          })
+
+          const res = await register.json()
+
+          if (!register.ok) {
+            throw new Error("status not ok")
+          }
+
+
+        } catch (err) {
+          throw new Error(err)
+          console.log(err)
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <input id="user">
+    <input id="password">
+    <input id="email">
+    <button onclick="handleRegister()">register</button>
+    <p id="returnInfo"></p>
+  </body>
+</html>

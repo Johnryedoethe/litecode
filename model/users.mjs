@@ -1,7 +1,7 @@
 import { db } from '../app.mjs'
 
 
-export async function createUsers() {
+export async function createUsersTable() {
   return new Promise((resolve, reject) => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
           userId TEXT NOT NULL,
@@ -18,12 +18,11 @@ export async function createUsers() {
         }
       )
   })
-  
 }
 
-export async function validatePassword(usernameTextField, userPasswordGiven) {
+export async function validatePassword(username, userPasswordGiven) {
     try {
-      const userFields = await getUserFields(usernameTextField)
+      const userFields = await getUserFieldsByUsername(username)
       // hash password in a variable
       // const userHashedPass = ...
 
@@ -44,9 +43,45 @@ export async function validatePassword(usernameTextField, userPasswordGiven) {
     }
 }
 
-async function getUserFields(usernameTextField) {
+export async function registerAcc(fields) {
+  const { username, email, password } = fields
+
+  try {
+    if (await getUserFieldsByUsername(username) || await getUserFieldsByEmail(email)) {
+      return null
+    }
+
+    const hashedPassword = hashPass(password)
+    const accDetails = createAccount(hashedPassword, username, email)
+
+    // create new session
+  } catch (err) {
+    throw new Error(err)
+    return err
+  }
+}
+
+async function createAccount(password, username, email) {
+  // email can be null
+
+  // create uuid for userId
+  const newUserId = ""
+
   return new Promise((resolve, reject) => {
-        db.get(`SELECT * FROM users WHERE username = ? OR email = ?;`, [usernameTextField, usernameTextField], (err, row) => {
+    db.run(`INSERT INTO users(userId, password, username, email) VALUES(?, ?, ?, ?)`
+        , [newUserId, password, username, email], (err, row) => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve(row)
+          }
+      })
+  })
+}
+
+async function getUserFieldsByUsername(username) {
+  return new Promise((resolve, reject) => {
+        db.get(`SELECT * FROM users WHERE username = ?;`, [username], (err, row) => {
           if (err) {
             reject(err)
           } 
@@ -57,4 +92,24 @@ async function getUserFields(usernameTextField) {
           resolve(row)
         })  
       })
+}
+
+async function getUserFieldsByEmail(email) {
+  return new Promise((resolve, reject) => {
+        db.get(`SELECT * FROM users WHERE email = ?;`, [email], (err, row) => {
+          if (err) {
+            reject(err)
+          } 
+          
+          if (!row){
+            resolve(null)
+          }
+          resolve(row)
+        })  
+      })
+}
+
+function hashPass(password) {
+  // return value from hash function
+  return password
 }

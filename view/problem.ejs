@@ -9,8 +9,12 @@
   </script>
 
   <script>
+    let curData = null
+    let curUserFunc = null
+
     function runUserCode() {
       const userFuncBody = document.getElementById("userCode").value
+      curUserFunc = userFuncBody
       let timer = null
 
       // 1. Initialize the worker thread
@@ -48,14 +52,11 @@
       }
 
       function handleResult(workerData) {
-        let userLoggedIn = true
         const { status, result, err } = workerData.data
+        curData = workerData.data
 
         let testRes = document.getElementById("testResult")
         
-        if (userLoggedIn) {
-          handlePostReq(workerData.data)
-        }
 
         if (status === "algorithm is too slow or is frozen") {
           testRes.textContent = `result: ${status}`
@@ -74,12 +75,19 @@
           testRes.textContent = `${result}`
         }
       }
+    }
 
-      async function handlePostReq(body) {
-        // get user id
-        const userId = "1"
+    async function handleSavingData() {
+      if (!curData) {
+        return 
+      }
+
+      await handlePostReq(curData)
+    }
+
+    async function handlePostReq(body) {
         const { status } = body
-        const infoBody = {status: status, userSolution: userFuncBody, solutionId: <%= problem.data.id %>, userId: userId}
+        const infoBody = {status: status, userSolution: curUserFunc, solutionId: <%= problem.data.id %>,}
         
         try {
           const writeSolutionRes = await fetch('/createOrUpdateSolution', {
@@ -94,11 +102,15 @@
             throw new Error(res.message)
           }
 
+
+          if (res.message === "user not logged in") {
+            window.location.href = '/userRegistration'
+          }
+
         } catch(err) {
           console.log(err.message)
         }
       }
-    }
 
   </script>
 </head>
@@ -111,8 +123,9 @@
     <p>difficulty: <%= problem.data.level %></p>
 
     <p><%- desc %></p>
-  </div>
 
+  <button onclick="handleSavingData()">save information</button>
+  </div>
   <textarea id="userCode" is="highlighted-code" language="javascript" tab-size="2" rows="30" cols="120"><%= solutionTemplate %></textarea>
   <button onclick="runUserCode()">run tests</button>
   <div><p id="testResult"></p></div>
