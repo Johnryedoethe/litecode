@@ -46,7 +46,6 @@ export async function createOrUpdateSolutions(reqHash) {
     
     if (!tryUpdateFields) {
       return await createRow(reqHash)
-      console.log("created")
     }
     return tryUpdateFields
   } catch(err) {

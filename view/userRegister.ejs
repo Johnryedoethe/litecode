@@ -18,7 +18,7 @@
           const register = await fetch('/registerAcc', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: {username, password, email}
+            body: JSON.stringify({username, password, email}),
           })
 
           const res = await register.json()

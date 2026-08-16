@@ -1,5 +1,7 @@
 import { db } from '../app.mjs'
+import crypto from 'crypto'
 
+import { createNewSession } from './sessions.mjs'
 
 export async function createUsersTable() {
   return new Promise((resolve, reject) => {
@@ -20,18 +22,18 @@ export async function createUsersTable() {
   })
 }
 
-export async function validatePassword(username, userPasswordGiven) {
+export function validatePassword(username, passwordGiven) {
     try {
-      const userFields = await getUserFieldsByUsername(username)
-      // hash password in a variable
-      // const userHashedPass = ...
+      const userFields = getUserFieldsByUsername(username)
 
       if (!userFields) {
         return null
       }
 
+      const userHashedPass = hashPass(passwordGiven)
+
       // validate hashed input and db info instead of undefined val
-      if (userFields.password === undefined) {
+      if (userFields.password === userHashedPass) {
         return true
       } else {
         return false
@@ -47,14 +49,14 @@ export async function registerAcc(fields) {
   const { username, email, password } = fields
 
   try {
+    // see if account already exists
     if (await getUserFieldsByUsername(username) || await getUserFieldsByEmail(email)) {
       return null
     }
 
-    const hashedPassword = hashPass(password)
-    const accDetails = createAccount(hashedPassword, username, email)
+    await createAccount(password, username, email)
 
-    // create new session
+    return await getUserFieldsByUsername(username)
   } catch (err) {
     throw new Error(err)
     return err
@@ -63,17 +65,17 @@ export async function registerAcc(fields) {
 
 async function createAccount(password, username, email) {
   // email can be null
-
   // create uuid for userId
-  const newUserId = ""
+  const newUserId = crypto.randomUUID()
+  const hashedPassword = hashPass(password)
 
   return new Promise((resolve, reject) => {
     db.run(`INSERT INTO users(userId, password, username, email) VALUES(?, ?, ?, ?)`
-        , [newUserId, password, username, email], (err, row) => {
+        , [newUserId, hashedPassword, username, email], (err) => {
           if (err) {
             reject(err)
           } else {
-            resolve(row)
+            resolve("queried")
           }
       })
   })
@@ -85,7 +87,7 @@ async function getUserFieldsByUsername(username) {
           if (err) {
             reject(err)
           } 
-          
+
           if (!row){
             resolve(null)
           }
@@ -111,5 +113,8 @@ async function getUserFieldsByEmail(email) {
 
 function hashPass(password) {
   // return value from hash function
-  return password
+  const saltedPass = "jimbob" + password
+  const hashedPass = crypto.createHash('sha256').update(saltedPass).digest('hex')
+
+  return hashedPass
 }

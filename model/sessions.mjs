@@ -1,5 +1,5 @@
 import { db } from '../app.mjs'
-
+import crypto from 'crypto'
 
 export async function createSessionsTable() {
   return new Promise((resolve, reject) => {
@@ -21,42 +21,38 @@ export async function createSessionsTable() {
 }
 
 export async function createNewSession(userId) {
-  // create uuid for session
-  // not finsihed
-  const sessionId = "36"
+  const sessionId = crypto.randomBytes(32).toString('hex')
   const curTimeInSeconds = Math.floor(Date.now() / 1000)
 
   const displacedSessionTime = 60 * 60
   const expireTime = curTimeInSeconds + displacedSessionTime
 
-  return new Promise((resolve, reject) => {
-    db.run(`INSERT INTO sessions(sessionId, userId, expireDate) VALUES(?, ?, ?)`
-        , [sessionId, userId, expireTime], (err, row) => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve(row)
-          }
-      })
-  })
+  try {
+    await createSession({sessionId, userId, expireTime})
+    const returnVal = await getSessionData(sessionId)
+    return returnVal.sessionId
+  } catch (err) {
+    throw new Error(err)
+  }
+  
 }
 
-export async function getUserIdIfLoggedIn(sessionId) {
+export async function getUserIdIfLoggedInSession(sessionId) {
   try {
-    const sessionInfo = await isUserLoggedIn()
+    const sessionInfo = await getSessionData(sessionId)
 
     if (!sessionInfo) {
       return null
     }
 
-    return sessionInfo
+    return sessionInfo.userId
   } catch (err) {
     throw new Error(err)
     return err
   }
 }
 
-async function isUserLoggedIn(sessionId) {
+async function getSessionData(sessionId) {
    return new Promise((resolve, reject) => {
         db.get(`SELECT * FROM sessions WHERE sessionId = ?;`, [sessionId], (err, row) => {
           if (err) {
@@ -67,7 +63,31 @@ async function isUserLoggedIn(sessionId) {
             resolve(null)
           }
         
-          resolve(row.userId)
+          resolve(row)
         })  
       })
+}
+
+async function createSession(fields) {
+  const { sessionId, userId, expireTime } = fields
+
+  return new Promise((resolve, reject) => {
+      db.run(`INSERT INTO sessions(sessionId, userId, expireDate) VALUES(?, ?, ?)`
+          , [sessionId, userId, expireTime], (err) => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve("row created")
+            }
+        })
+    })
+}
+
+export async function logoutOfAccount(sessionId) {
+  // delete query at specific session id
+  db.run(`DELETE FROM sessions WHERE sessionId = ?`, [sessionId], (err) => {
+    if (err) {
+      throw new Error(err)
+    }
+  })
 }

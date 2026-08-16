@@ -4,10 +4,10 @@ import { marked } from 'marked'
 import cookieParser from 'cookie-parser'
 import sqlite3Package from 'sqlite3';
 
-import { loadProblems } from './problems.mjs'
+import { loadProblems } from './util/problems.mjs'
 import { createSolutionsTable, getFromSolutionsIfExists, createOrUpdateSolutions } from './model/solutions.mjs'
-import { createUsersTable, validatePassword } from './model/users.mjs'
-import { createSessionsTable, createNewSession, getUserIdIfLoggedIn } from './model/sessions.mjs'
+import { createUsersTable, validatePassword, registerAcc } from './model/users.mjs'
+import { createSessionsTable, createNewSession, getUserIdIfLoggedInSession, logoutOfAccount } from './model/sessions.mjs'
 
 
 const sqlite3 = sqlite3Package.verbose()
@@ -35,6 +35,7 @@ const app = express()
 
 
 app.use(bodyParser.json())
+app.use(cookieParser())
 app.use(bodyParser.urlencoded({extended:true}))
 
 app.set('views', './view')
@@ -62,17 +63,22 @@ app.get('/problems/:id/:name', async (req, res) => {
     return
   }
 
+
   // get sessionId from cookie
-  const sessionId = ""
+  const sessionId = req.cookies.authToken
 
   try {
-    const userId = await getUserIdIfLoggedIn(sessionId)
-
-    if (!userId) {
-      const solutionTemplate = `function solution(input) {
-      return ...
+    let solutionTemplate = `function solution(input) {
+    return ...
   }`
 
+    if (!sessionId) {
+      return res.render('problem', {problem, desc: marked.parse(problem.content), solutionTemplate, completed: false})
+    }
+
+    const userId = await getUserIdIfLoggedInSession(sessionId)
+
+    if (!userId) {
       return res.render('problem', {problem, desc: marked.parse(problem.content), solutionTemplate, completed: false})
     }
 
@@ -81,13 +87,9 @@ app.get('/problems/:id/:name', async (req, res) => {
     // null is default value for entry not found
     if (getUserSolutionData !== null) {
       const { userSolution, completed } = getUserSolutionData
-      const solutionTemplate = userSolution
+      solutionTemplate = userSolution
       return res.render('problem', {problem, desc: marked.parse(problem.content), solutionTemplate, completed})
     }
-
-    const solutionTemplate = `function solution(input) {
-    return ...
-}`
 
     res.render('problem', {problem, desc: marked.parse(problem.content), solutionTemplate, completed: false})
   } catch (err) {
@@ -99,10 +101,12 @@ app.get('/problems/:id/:name', async (req, res) => {
 app.post('/createOrUpdateSolution', async (req, res) => {
   const { status, userSolution, solutionId } = req.body
   // validate user session
-  if (!req.cookie) {
+  const userCookie = req.cookies.authToken
+  if (!userCookie) {
     return res.status(200).json({message: "user not logged in"})
   }
-  const userId = "1"
+
+  const userId = await getUserIdIfLoggedInSession(userCookie)
 
   if (status !== "Completed") {
     try {
@@ -130,8 +134,35 @@ app.get('/userRegistration', (req, res) => {
   res.render('userRegister')
 })
 
-app.post('/registerAcc', (req, res) => {
+app.post('/registerAcc', async (req, res) => {
+  const fields = req.body
+  const curSessionId = req.cookies.authToken
 
+  try {
+    if (curSessionId !== undefined) {
+      // remove cookie from web
+      await logoutOfAccount(curSessionId)
+    }
+
+    const newUserId = await registerAcc(fields)
+    
+    if (!newUserId) {
+      return
+    }
+
+    const sessionId = await createNewSession(newUserId.userId)
+    // create cookie response, with newSessionId
+    res.cookie('authToken', sessionId, {
+      maxAge: 60 * 60 * 1000,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax'
+    })
+    
+    res.status(200).json({message: "account created"})
+  } catch (err) {
+    return res.status(500).json({message: "internal server error"})
+  }
 })
 
 app.listen(3000, () => { console.log('Server is running on port 3000') })
