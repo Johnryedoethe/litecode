@@ -34,7 +34,6 @@ export async function createNewSession(userId) {
   } catch (err) {
     throw new Error(err)
   }
-  
 }
 
 export async function getUserIdIfLoggedInSession(sessionId) {

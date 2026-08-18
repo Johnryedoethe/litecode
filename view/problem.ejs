@@ -9,8 +9,9 @@
   </script>
 
   <script>
+    // when running users code the current data and function that was run will be saved
     let curData = null
-    let curUserFunc = <%- solutionTemplate %>
+    let curUserFunc = null
 
     function runUserCode() {
       const userFuncBody = document.getElementById("userCode").value
@@ -104,30 +105,45 @@
 
 
           if (res.message === "user not logged in") {
-            window.location.href = '/userRegistration'
+            window.location.href = '/userLogin'
+            return
           }
-
         } catch(err) {
           console.log(err.message)
         }
       }
 
   </script>
+
+  <link rel="stylesheet" href="/style.css">
+
 </head>
 <body>
-  <div>
-    <% if (completed) { %>
-      <p>completed<p></p> 
-    <% } %>
-    <h2><%= problem.data.id %>. <%= problem.data.name %></h2>
-    <p>difficulty: <%= problem.data.level %></p>
+  <nav class="navbar">
+      <div class="logo"><a href="/">litecode</a></div>
+      <div class="logo"><a href="/"><h2>problem set</h2></a></div>
+        <ul class="navLinks">
+          <li><a href="/userLogin">sign in</a></li>
+          <li><a href="/userRegistration"><h3>sign up</h3></a></li>
+        </ul>
+  </nav>
 
-    <p><%- desc %></p>
+  <div class="problemBg">
+    <button onclick="handleSavingData()">save information</button>
+    <div class="problemInfo">
+      <% if (completed) { %>
+        <p>completed<p></p> 
+      <% } %>
+      <h2><%= problem.data.id %>. <%= problem.data.name %></h2>
+      <p>difficulty: <%= problem.data.level %></p>
 
-  <button onclick="handleSavingData()">save information</button>
+      <p><%- desc %></p>
+    </div>
+    <div class="userCodeSpace">
+      <textarea id="userCode" is="highlighted-code" language="javascript" tab-size="2" rows="30" cols="120"><%= solutionTemplate %></textarea>
+      <button onclick="runUserCode()">run tests</button>
+      <div><p id="testResult"></p></div>
+    </div>
   </div>
-  <textarea id="userCode" is="highlighted-code" language="javascript" tab-size="2" rows="30" cols="120"><%= solutionTemplate %></textarea>
-  <button onclick="runUserCode()">run tests</button>
-  <div><p id="testResult"></p></div>
 </body>
 </html>

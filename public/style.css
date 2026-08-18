@@ -1,0 +1,115 @@
+body, h1, h2, h3, h4, p, ul, ol {
+  margin: 0;
+  padding: 0;
+}
+
+.loginOrSignupContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: rgb(248, 230, 207);
+}
+
+.loginOrSignup {
+  background-color: #b7e7ea;
+  width: 30%;
+  height: 50%;
+  border-radius: 5%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.userFields {
+  padding: 4% 10%;
+  margin: 2%;
+  border-radius: 14px;
+  border: none;
+}
+
+.submitInfoButtons {
+  background-color: aliceblue;
+  padding: 2% 5%;
+  margin: 3% 0%;
+  border-radius: 16px;
+}
+
+#returnInfo {
+  color: red;
+}
+
+.problemSetContainer {
+  background-color: rgb(248, 230, 207);
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.problemSet {
+  padding: 3% 0% 2% 0%;
+  margin: 2%;
+  display: flex;
+  width: 35%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #6338EE;
+  border-radius: 14px;
+}
+
+.problem {
+  border-radius: 16px;
+  margin: 0.5% 0%;
+  padding: 1% 2%;
+  width: 90%;
+  display: flex;
+  justify-content: space-between;
+}
+
+#begg {
+  background-color: #6fec83;
+}
+
+#inter {
+  background-color: #f08c00;
+}
+
+#adv {
+  background-color: #e03131;
+}
+
+.problemBg {
+  width: 100%;
+  height: 100vh;
+  background-color: rgb(248, 230, 207);
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #A28967;
+  height: 5vh;
+}
+
+.navLinks {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  padding-right: 1%;
+  width: 8%;
+}
+
+.navLinkVals {
+  padding-right: 4%;
+}
+
+.logo {
+  text-decoration: none;
+  padding-left: 2%;
+}

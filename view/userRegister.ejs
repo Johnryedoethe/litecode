@@ -3,17 +3,23 @@
     <title>login</title>
 
     <script>
+      let msgInfo = null
+
       async function handleRegister() {
-        const username = document.getElementById("user").value
-        const password = document.getElementById("password").value
-        const email = document.getElementById("email").value
+        const username = document.getElementById("user").value.trim()
+        const password = document.getElementById("password").value.trim()
+        const email = document.getElementById("email").value.trim()
         
-        let msgInfo = document.getElementById("returnInfo")
+        msgInfo = document.getElementById("returnInfo")
+        msgInfo.textContent = ""
 
         if (!username || !password) {
-          msgInfo.textContent = "invalid username or password"
+          return msgInfo.textContent = "invalid username or password"
         }
 
+        if (!validateChars(username) || !validateChars(password)) {
+          return msgInfo.textContent = "invalid username or password"
+        }
         try {
           const register = await fetch('/registerAcc', {
             method: 'POST',
@@ -27,19 +33,60 @@
             throw new Error("status not ok")
           }
 
+          if (res.message === "acc could not be registered") {
+            return msgInfo.textContent = "invalid username or password"
+          }
 
+          if (res.message === "account created") {
+            return window.location.href = '/'   
+          }
         } catch (err) {
           throw new Error(err)
           console.log(err)
         }
       }
+
+      function validateChars(field) {
+        if (field.length > 15) {
+          return false
+        }
+
+        for (let i = 0; i < field.length; i++) {
+          if (field.charAt(i) === "@") {
+              return false
+              break
+          }
+        }
+
+        return true
+      }
     </script>
+
+    <link rel="stylesheet" href="/style.css">
+
   </head>
   <body>
-    <input id="user">
-    <input id="password">
-    <input id="email">
-    <button onclick="handleRegister()">register</button>
-    <p id="returnInfo"></p>
+    <nav class="navbar">
+      <div class="logo"><a href="/">litecode</a></div>
+      <div class="logo"><a href="/"><h2>problem set</h2></a></div>
+        <ul class="navLinks">
+          <li><a href="/userLogin"><h3>sign in</h3></a></li>
+          <li><a href="/userRegistration"><h3>sign up</h3></a></li>
+        </ul>
+    </nav>
+
+    <div class="loginOrSignupContainer">
+      <div class="loginOrSignup">
+        <h3>register an account</h3>
+        <input id="user" class="userFields" placeholder="username*">
+        <input id="password" class="userFields" placeholder="password*">
+        <input id="email" class="userFields" placeholder="email">
+        <button onclick="handleRegister()" class="submitInfoButtons">signup</button>
+        <p id="returnInfo"></p>
+        <a href="/userLogin">Sign in</a>
+      </div>
+    </div>
+    
+
   </body>
 </html>

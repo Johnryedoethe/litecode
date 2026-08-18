@@ -22,27 +22,41 @@ export async function createUsersTable() {
   })
 }
 
-export function validatePassword(username, passwordGiven) {
-    try {
-      const userFields = getUserFieldsByUsername(username)
+function validatePassword(fields, passwordGiven) {
+  const { username, password } = fields
 
-      if (!userFields) {
-        return null
-      }
+    const userHashedPass = hashPass(passwordGiven)
 
-      const userHashedPass = hashPass(passwordGiven)
-
-      // validate hashed input and db info instead of undefined val
-      if (userFields.password === userHashedPass) {
-        return true
-      } else {
-        return false
-      }
-
-    } catch (err) {
-      throw new Error(err)
-      return err
+    console.log(userHashedPass)
+    // validate hashed input and db info instead of undefined val
+    if (password === userHashedPass) {
+      return true
+    } else {
+      return false
     }
+}
+
+export async function userLogin(fields) {
+  // assume the user is already validated their account details
+  const { username, password } = fields
+  try {
+    const userFields = await getUserFieldsByUsername(username)
+
+    console.log(userFields)
+    if (!userFields) {
+      return null
+    }
+    const isPassValid = validatePassword(userFields, password)
+
+    if (!isPassValid) {
+      return false
+    }
+
+    return await createNewSession(userFields.userId)
+  } catch (err) {
+    throw new Error(err)
+  }
+  
 }
 
 export async function registerAcc(fields) {
@@ -50,7 +64,12 @@ export async function registerAcc(fields) {
 
   try {
     // see if account already exists
-    if (await getUserFieldsByUsername(username) || await getUserFieldsByEmail(email)) {
+    const isUserRegisteredByEmail = await getUserFieldsByEmail(email)
+    const isUserRegisteredByUsername = await getUserFieldsByUsername(username)
+
+
+    if (isUserRegisteredByUsername || isUserRegisteredByEmail) {
+      console.log(isUserRegisteredByUsername, isUserRegisteredByEmail)
       return null
     }
 
@@ -97,6 +116,10 @@ async function getUserFieldsByUsername(username) {
 }
 
 async function getUserFieldsByEmail(email) {
+  if (email === "") {
+    return null
+  }
+
   return new Promise((resolve, reject) => {
         db.get(`SELECT * FROM users WHERE email = ?;`, [email], (err, row) => {
           if (err) {

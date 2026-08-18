@@ -1,18 +1,52 @@
 <!DOCTYPE html>
 <head>
   <title>problemset</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
-<body>
-  <div>
-    <h2>problemSet</h2>
 
-    <% problems.forEach((problem) => { %>
-      <div>
-        <a href="/problems/<%= problem.data.id %>/<%= problem.data.slugname %>"><%= problem.data.name %></a>
-        <p><%= problem.data.level%></p>
-      </div>
-    <% }) %>
+<body>
+  <nav class="navbar">
+      <div class="logo"><a href="/">litecode</a></div>
+      <div class="logo"><a href="/"><h2>problem set</h2></a></div>
+        <ul class="navLinks">
+          <li class="navLinkVals"><a href="/userLogin"><h3>sign in</h3></a></li>
+          <li><a href="/userRegistration"><h3>sign up</h3></a></li>
+        </ul>
+  </nav>
+
+  <div class="problemSetContainer">
+    <!-- <h2>problemSet</h2> -->
+
+    <div class="problemSet">
+      <% problems.forEach((problem) => { %>
+        <% if (problem.data.level === "beginner") {%>
+          <div class="problem" id="begg">
+            <p><%= problem.data.id %>.</p>
+            <a href="/problems/<%= problem.data.id %>/<%= problem.data.slugname %>"><%= problem.data.name %></a>
+            <p><%= problem.data.level%></p>
+          </div>
+          <% return %>
+        <% } %>
+
+        <% if (problem.data.level === "intermediate") {%>
+          <div class="problemt" id="inter">
+            <p><%= problem.data.id %>.</p>
+            <a href="/problems/<%= problem.data.id %>/<%= problem.data.slugname %>"><%= problem.data.name %></a>
+            <p><%= problem.data.level%></p>
+          </div>
+          <% return %>
+        <% } %>
+
+        <% if (problem.data.level === "advanced") {%>
+          <div class="problem" id="adv">
+            <p><%= problem.data.id %>.</p>
+            <a href="/problems/<%= problem.data.id %>/<%= problem.data.slugname %>"><%= problem.data.name %></a>
+            <p><%= problem.data.level%></p>
+          </div>
+          <% return %>
+        <% } %>
+      <% }) %>
+    </div>
   </div>
-    
 </body>
 </html>

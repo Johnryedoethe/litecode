@@ -1,9 +1,93 @@
 <html>
   <head>
     <title>login</title>
+
+    <script>
+      let msgInfo = null
+
+      async function handleLogin() {
+        const username = document.getElementById("user").value.trim()
+        const password = document.getElementById("password").value.trim()
+        msgInfo = document.getElementById("returnInfo")
+        msgInfo.textContent = ""
+
+
+        if (!username || !password) {
+          msgInfo.textContent = "invalid username or password"
+          return
+        }
+
+        if (!validateChars(username) || !validateChars(password)) {
+          msgInfo.textContent = "invalid username or password"
+          return
+        }
+        try {
+          const login = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({username, password}),
+          })
+
+          const res = await login.json()
+
+          if (res.message === "invalid username or password") {
+            msgInfo.textContent = "invalid username or password"
+          }
+
+          if (!login.ok) {
+            throw new Error("status not ok")
+          }
+
+          
+
+          if (res.message === "user logged in") {
+            window.location.href = '/'
+            return
+          }
+
+        } catch (err) {
+          throw new Error(err)
+          console.log(err)
+        }
+      }
+
+      function validateChars(field) {
+        for (let i = 0; i < field.length; i++) {
+          if (field.charAt(i) === "@") {
+              return false
+              break
+          }
+        }
+
+        return true
+      }
+    </script>
+
+    <link rel="stylesheet" href="/style.css">
+
   </head>
   <body>
-   <input id="user">
-   <input id="password">
+    <nav class="navbar">
+      <div class="logo"><a href="/">litecode</a></div>
+      <div class="logo"><a href="/"><h2>problem set</h2></a></div>
+        <ul class="navLinks">
+          <li><a href="/userLogin"><h3>sign in</h3></a></li>
+          <li><a href="/userRegistration"><h3>sign up</h3></a></li>
+        </ul>
+    </nav>
+
+    <div class="loginOrSignupContainer">
+      <div class="loginOrSignup">
+        <h3>Log into an account</h3>
+        <input id="user" class="userFields" placeholder="username*">
+        <input id="password" class="userfields" placeholder="password*" type="password">
+        <button onclick="handleLogin()" class="submitInfoButtons">login</button>
+        <p id="returnInfo"></p>
+        
+        <a href="/userRegistration">Sign up</a>
+      </div>
+    </div>
+   
+    
   </body>
 </html>
